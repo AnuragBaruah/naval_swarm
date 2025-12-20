@@ -1,10 +1,9 @@
-# Minimal template that follows a naive "nearest-task" policy with light messaging.
 import math, random
 
 def dist(ax, ay, bx, by):
     return ((ax-bx)**2 + (ay-by)**2) ** 0.5
 
-class Agent:
+class template_Agent:
     def __init__(self, agent_id, world_bounds, speed, seed):
         self.id = agent_id
         self.bounds = world_bounds
@@ -60,3 +59,22 @@ class Agent:
                     break
 
         return {"vx": vx, "vy": vy}, outbox
+
+class Agent:
+    def __init__(self, agent_id, world_bounds, speed, seed):
+        # fixed seed initialisation for predictable randomness (in case ever use randomness)
+        random.seed(seed)
+
+        # initialisation (compulsory)
+        self.id = agent_id
+        self.world_bounds = world_bounds
+        self.max_speed = speed
+
+        # initialisation (general)
+        self.claim = None
+        self.queue = []
+        self.available_tasks = []
+        self.already_scanned = []
+
+    def step(self, t, dt, self_state, tasks_visible, inbox):
+        pass
