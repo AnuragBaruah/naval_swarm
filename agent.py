@@ -73,16 +73,12 @@ class Agent:
         # initialisation (general)
         self.claim = None
         self.queue = []
-        self.available_tasks = []
         self.already_claimed = []
         self.cost_of_claim = math.inf
 
         # command switches
         self.reclaim = False
         self.exchange = False
-
-        # 1st message
-        self.outbox = [{"hello" : self.id}]
 
     def compute_cost(self, all_tasks, taskid):
         cost = 0
@@ -129,10 +125,10 @@ class Agent:
             
             # handle reclaims to see if reclaim agent is better
             if "reclaim" in msg and self.id != agent_id:
-                _re += 1
                 agent_claim, agent_cost = msg["reclaim"], msg["cost"]
                 for taskid in self.queue:
                     if agent_claim == taskid and agent_cost < self.compute_cost(all_tasks, agent_claim):
+                        _re += 1
                         # when reclaim is winning; agent must give a "forfeit and take" command
                         self.entering_agent = agent_id
                         self.exchange_task = agent_claim
@@ -161,14 +157,7 @@ class Agent:
             self.reclaim = False
         
         # agent's original message did not get broadcasted but agent could win
-        elif (
-            self.claim is not None and
-            self.id not in sender_list and (
-                self.cost_of_claim < _min_cost or (
-                    self.cost_of_claim == _min_cost and self.id > _winner_agent_id
-                )
-            )
-        ):
+        elif self.claim is not None and self.id not in sender_list and self.cost_of_claim < _min_cost:
             self.reclaim = True
 
         # agent lost claims betting
@@ -200,7 +189,7 @@ class Agent:
                 claim = taskid
                 cost_of_claim = cost
         
-        # accept this claim if NO reclaim requirement
+        # accept this claim if NO reclaim requirement is there
         if not (self.reclaim and self.cost_of_claim < cost_of_claim):
             self.claim = claim
             self.cost_of_claim = cost_of_claim
