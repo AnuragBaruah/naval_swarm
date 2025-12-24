@@ -122,7 +122,7 @@ def run(scn, agent_cls, log_path, trace_path=None):
             candidate = current_leader if current_leader is not None else 0         #by default, fail current leader if known, else agent 0
             failed_agent = candidate        #record which agent has failed
             if 0 <= failed_agent < len(agents):
-                agents[failed_agent]["alive"] = False       #mark that agent as dead
+                agents[failed_agent]["alive"] = False; print("Failure injected at time=", time_t)       #mark that agent as dead
 
 
         #2. Filter Visible tasks - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -186,10 +186,12 @@ def run(scn, agent_cls, log_path, trace_path=None):
                     # accept higher term or first leader if none
                     if term > current_term or current_leader is None:
                         # if we are after a failure and new leader different, record election time if not set
+                        print(f"failed_agent = {failed_agent}, agent_id = {agent_id}, time = {time_t}, fail_at = {fail_at}")
                         if failed_agent is not None and agent_id != failed_agent and leader_elected_after_fail is None:
+                            
                             leader_elected_after_fail = time_t - fail_at
                         current_term = term
-                        current_leader = agent_id
+                        current_leader = agent_id; print(f"Leader elected as {current_leader} at time = {time_t}")
 
 
         #7. This block actually moves the agents in the world and measures how far they travel - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -297,13 +299,14 @@ def run(scn, agent_cls, log_path, trace_path=None):
     conv_sec = None if convergence_tick is None else convergence_tick * dt
     penalty = 0.0
     if conv_sec is None or conv_sec>60.0:
-        penalty += 0.05
+        penalty += 0.05; print("convergence penalty!!! at time =", time_t)
 
     # Leader election gate if required
     leader_election_s = leader_elected_after_fail
     if leaders_required>0 and fail_at is not None:
         if leader_election_s is None or leader_election_s>10.0:
-            penalty += 0.05
+            penalty += 0.05; print("no/late leader penalty!!! at time =", time_t)
+            print(f"leader_election_s = {leader_election_s}, fail_at = {fail_at}")
 
     score -= penalty
 
