@@ -26,12 +26,12 @@ class Agent:
         self.current_leader = 0
         self.leader_not_observed = 0
 
-    def compute_cost(self, all_tasks, taskid):
+    def compute_distance_cost(self, all_tasks, taskid):
         cost = 0
         x, y = self.x, self.y
         for q in self.queue:
             cost += dist(x, y, all_tasks[q]["x"], all_tasks[q]["y"])
-            cost += all_tasks[q]["remaining"]
+            cost += all_tasks[q]["remaining"] * self.max_speed
             x, y = all_tasks[q]["x"], all_tasks[q]["y"]
         
         cost += dist(x, y, all_tasks[taskid]["x"], all_tasks[taskid]["y"])
