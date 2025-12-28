@@ -92,7 +92,6 @@ class Agent:
             x, y = all_tasks[q]["x"], all_tasks[q]["y"]
         
         cost += dist(x, y, all_tasks[taskid]["x"], all_tasks[taskid]["y"])
-        
         return cost
 
     def step(self, t, dt, self_state, tasks_visible, inbox):
@@ -102,7 +101,8 @@ class Agent:
         # get tasks_visible : [{'id': 1, 'x': 1146.0738385082163, 'y': 450.55809196144605, 't0': 2, 'deadline': 5, 'service': 2, 'value': 10, 'remaining': 2, 'cap': None}]
         active_tasks_ids = [task["id"] for task in tasks_visible] 
         all_tasks = dict(zip(active_tasks_ids, tasks_visible))     # getting a "id to task" mapping for ease of access
-        
+
+
         # read message : {'claim' : task_id, 'cost' : cost}
         # inbox : [{'from': 0, 'msg': {...}}, {'from': 1, 'msg': {...}}]
         sender_list = []
@@ -201,12 +201,13 @@ class Agent:
         # update claim
         claim = None
         cost_of_claim = math.inf
+
         for taskid in available_tasks_ids:
             cost = self.compute_cost(all_tasks, taskid)
             if cost < cost_of_claim:
                 claim = taskid
                 cost_of_claim = cost
-        
+                
         # accept this claim if NO reclaim requirement is there
         if not (self.reclaim and self.cost_of_claim < cost_of_claim):
             self.claim = claim

@@ -33,7 +33,7 @@ def run(scn, agent_cls, log_path, trace_path=None):
     loss = scn["comm"]["loss"]  #Packet loss (0.1 = 10%)
     byte_budget_per_s = kbps * 125.0  # 1 kbps = 125 bytes/s
 
-    #for S6 and S7 
+    #for S6 
     roles_cfg = scn.get("roles", {"leaders_required": 0})
     leaders_required = int(roles_cfg.get("leaders_required", 0))
     fail_at = roles_cfg.get("fail_at", None)
@@ -57,7 +57,7 @@ def run(scn, agent_cls, log_path, trace_path=None):
 
     ## for S7 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     #Capabilities (optional)
-    agent_caps = scn.get("agent_caps", None)
+    agent_caps = scn.get("agent_caps", None) # [[agent1cap1, agent1cap2], [agent2cap1], []]
 
     #Tasks
     tasks = deepcopy(scn["tasks"])
