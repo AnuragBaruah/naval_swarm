@@ -79,6 +79,9 @@ class Agent:
         # command switches
         self.reclaim = False
         self.exchange = False
+        self.m1 = True
+        self.current_leader = 0
+        self.leader_not_observed = 0
 
     def compute_cost(self, all_tasks, taskid):
         cost = 0
@@ -105,6 +108,7 @@ class Agent:
         sender_list = []
         _min_cost = math.inf
         _winner_agent_id = -1
+        _leader_detected = False
         
         # INBOX LOOP    
         _re = 0
@@ -112,6 +116,10 @@ class Agent:
             agent_id = M["from"]
             sender_list.append(agent_id)
             msg = M["msg"]
+
+            # leader handling
+            if "role" in msg:
+                _leader_detected = True
             
             # claims betting
             if self.claim is not None and "claim" in msg:
@@ -148,6 +156,16 @@ class Agent:
                 self.already_claimed.append(msg["claim"])
 
         if _re == 0: self.exchange = False
+
+        # leader handling
+        if not _leader_detected:
+            self.leader_not_observed += 1
+            if self.leader_not_observed == 8:
+                self.current_leader += 1
+                self.leader_not_observed = 0
+        else:
+            self.leader_not_observed = 0
+
 
 
         # update queue
@@ -225,6 +243,17 @@ class Agent:
         if self.exchange:
             msg["xclaim"] = self.exchange_task
             msg["enter"] = self.entering_agent
+
+        # leader message
+        if self.m1 and self.id == self.current_leader:
+            self.m1 = False
+            msg["type"] = "role"
+            msg["role"] = "leader"
+            msg["term"] = self.current_leader
+            print(f"Hello I am agent {self.id}, I am declaring myself as leader at time t = {t}")
+        
+        elif not self.m1 and self.id == self.current_leader:
+            msg["role"] = True
 
         # send message only if msg is polulated
         if msg != {}:
