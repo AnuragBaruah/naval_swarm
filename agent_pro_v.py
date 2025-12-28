@@ -31,7 +31,7 @@ class Agent:
         x, y = self.x, self.y
         for q in self.queue:
             cost += dist(x, y, all_tasks[q]["x"], all_tasks[q]["y"])
-            cost += all_tasks[q]["remaining"]
+            cost += all_tasks[q]["remaining"] * self.max_speed
             x, y = all_tasks[q]["x"], all_tasks[q]["y"]
         
         cost += dist(x, y, all_tasks[taskid]["x"], all_tasks[taskid]["y"])
