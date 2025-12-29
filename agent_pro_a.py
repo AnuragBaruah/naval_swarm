@@ -69,7 +69,7 @@ class Agent:
             debug_message += "NON-CAP UPDATED "
             self.prev_no_cap = self.non_capabilities.copy()
         if debug_message != "":
-            debug_message += f"\nTIMESTAMP = {timestamp}\nqueue = {self.prev_queue}\ncaps  = {self.prev_cap}\nno_cap= {self.prev_queue}\n*******************\n"
+            debug_message += f"\nTIMESTAMP = {timestamp}\nqueue = {self.prev_queue}\ncaps  = {self.prev_cap}\nno_cap= {self.prev_no_cap}\n*******************\n"
             self.debug_file.write(debug_message)
     
     def close_debug_file(self):
