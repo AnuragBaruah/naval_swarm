@@ -101,7 +101,7 @@ class PygameVisualizer:
             color = (180, 0, 0)       # red
         x, y = world_to_screen(task["x"], task["y"], self.area, self.W, self.H)
         r = int(self.service_radius * self.W / (self.area[1]-self.area[0]))
-        pygame.draw.circle(self.screen, color, (x,y), r, 2)
+        pygame.draw.circle(self.screen, color, (x,y), r*2, 2)
         # draw task id text
         text = self.font.render(str(task["id"]), True, (255,255,255))
         rect = text.get_rect(center=(x, y))
