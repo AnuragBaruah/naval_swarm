@@ -1,5 +1,8 @@
 import math, random
 
+# import for debug purposes
+import atexit
+
 def dist(ax, ay, bx, by):
     return ((ax-bx)**2 + (ay-by)**2) ** 0.5
 
@@ -32,6 +35,46 @@ class Agent:
         self.current_leader = 0
         self.leader_not_observed = 0
 
+        # region - DEBUG
+        # DEBUG FEATURES
+        self.prev_queue = self.queue.copy()
+        self.prev_cap = self.capabilities.copy()
+        self.prev_no_cap = self.non_capabilities.copy()
+        
+        # general debug mode (in case we want debug mode for all agents)
+        self.debug_mode = True
+
+        # # agent based debug mode (in case we want only debug file for particular)
+        # if self.id in (<write agent ids here for which we want to get debugs>):
+        #     self.debug_mode = True
+        # else:
+        #     self.debug_mode = False
+
+        # debug file creation
+        if self.debug_mode:
+            self.debug_file = open(f"DEBUG\\agent_{self.id}.log", "w", buffering = 1)
+            atexit.register(self.close_debug_file)
+
+        # endregion
+
+    def debug(self, timestamp):
+        debug_message = ""
+        if self.queue != self.prev_queue:
+            debug_message += "QUEUE UPDATED "
+            self.prev_queue = self.queue.copy()
+        if self.capabilities != self.prev_cap:
+            debug_message += "CAPS UPDATED "
+            self.prev_cap = self.capabilities.copy()
+        if self.non_capabilities != self.prev_no_cap:
+            debug_message += "NON-CAP UPDATED "
+            self.prev_no_cap = self.non_capabilities.copy()
+        if debug_message != "":
+            debug_message += f"\nTIMESTAMP = {timestamp}\nqueue = {self.prev_queue}\ncaps  = {self.prev_cap}\nno_cap= {self.prev_queue}\n*******************\n"
+            self.debug_file.write(debug_message)
+    
+    def close_debug_file(self):
+        self.debug_file.close()
+    
     def compute_distance_cost(self, all_tasks, taskid):
         cost = 0
         x, y = self.x, self.y
@@ -365,6 +408,10 @@ class Agent:
         else:
             self.outbox = []
 
+        #  DEBUG
+        if self.debug_mode:
+            self.debug(t) 
+        
         return {"vx": vx, "vy": vy}, self.outbox
 
         
