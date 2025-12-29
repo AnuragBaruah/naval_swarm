@@ -130,15 +130,15 @@ class Agent:
         for taskid in available_task_ids:
             # task capability requirement
             _task_req_cap = all_tasks_from_id[taskid]["cap"]
-
-            # simple ditance for exploration possibility
-            _dist = dist(self.x, self.y, all_tasks_from_id[taskid]["x"], all_tasks_from_id[taskid]["y"])
             
-            # task requires some capability but agent is unsure if it has capability or not + the agent can do the task based on deadline -> UC
-            if (_task_req_cap is not None and _task_req_cap not in self.capabilities and _task_req_cap not in self.non_capabilities and
-                (t + _dist / self.max_speed + all_tasks_from_id[taskid]["service"] < all_tasks_from_id[taskid]["deadline"])):
-                # calls for exploration
-                exploration_tasks[taskid] = dist(self.x, self.y, all_tasks_from_id[taskid]["x"], all_tasks_from_id[taskid]["y"])
+            # task requires some capability but agent is unsure if it has capability or not -> UC
+            if (_task_req_cap is not None and _task_req_cap not in self.capabilities and _task_req_cap not in self.non_capabilities):
+                # simple ditance for exploration possibility
+                _dist = dist(self.x, self.y, all_tasks_from_id[taskid]["x"], all_tasks_from_id[taskid]["y"])
+                # if the agent can do the task based on deadline:
+                if (t + _dist / self.max_speed + all_tasks_from_id[taskid]["service"] < all_tasks_from_id[taskid]["deadline"]):
+                    # calls for exploration
+                    exploration_tasks[taskid] = _dist
             
             # handling the KC cases 
 
@@ -248,6 +248,7 @@ class Agent:
                 else:
                     self.exp_done_msg_required = False
                     if exp_done_taskid in exploration_tasks: del exploration_tasks[exp_done_taskid]
+                    if exp_done_taskid in self.queue: self.queue.remove(exp_done_taskid)
         
         # endregion
 
@@ -360,12 +361,12 @@ class Agent:
                 if self.task_doing_counter == 2:
                     _current_task = all_tasks_from_id[target_task]
                     _cap = _current_task["cap"]
-                    # if agent has spent 2 dt doing the task and task is happening (remianing_time is reducing) -> include required_cap in self.capabilities
-                    if _current_task["remaining"] < _current_task["service"] and _cap not in self.capabilities:
+                    # if agent has spent dt time doing the task and task is happening (remianing_time is reducing) -> include required_cap in self.capabilities
+                    if _cap is not None and _current_task["remaining"] < _current_task["service"] and _cap not in self.capabilities:
                         self.capabilities.append(_cap)
                         self.exp_done_msg_required = True # this flag will make agent send exp_done message
                     # task is not happening
-                    elif _current_task["remaining"] == _current_task["service"] and _cap not in self.capabilities:
+                    elif _cap is not None and _current_task["remaining"] == _current_task["service"] and _cap not in self.capabilities:
                         self.non_capabilities.append(_cap)
                         self.queue.remove(target_task)
             
