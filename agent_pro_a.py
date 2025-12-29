@@ -94,7 +94,7 @@ class Agent:
         active_tasks_ids = [task["id"] for task in tasks_visible] 
         all_tasks_from_id = dict(zip(active_tasks_ids, tasks_visible))     # getting a "id to task" mapping for ease of access
 
-        # region PRE - task INBOX handling
+        # region INBOX handling (Pre - Task)
         '''Check INBOX'''
         # inbox data: [{'from': 0, 'msg': {...}}, {'from': 1, 'msg': {...}}]
         for M in inbox:
@@ -120,7 +120,7 @@ class Agent:
         self.queue = [t for t in self.queue if t in active_tasks_ids]
         
 
-        # region parse tasks and get claim and exploration status
+        # region claim and/or explore
         '''claim and/or exploration'''
         self.claim = None
         current_claim_distance_cost = math.inf
@@ -133,7 +133,7 @@ class Agent:
             
             # task requires some capability but agent is unsure if it has capability or not -> UC
             if (_task_req_cap is not None and _task_req_cap not in self.capabilities and _task_req_cap not in self.non_capabilities):
-                # simple ditance for exploration possibility
+                # simple distance for exploration possibility
                 _dist = dist(self.x, self.y, all_tasks_from_id[taskid]["x"], all_tasks_from_id[taskid]["y"])
                 # if the agent can do the task based on deadline:
                 if (t + _dist / self.max_speed + all_tasks_from_id[taskid]["service"] < all_tasks_from_id[taskid]["deadline"]):
@@ -231,8 +231,8 @@ class Agent:
                 if claimed_task in exploration_tasks and claimed_cost <= exploration_tasks[claimed_task]:
                     del exploration_tasks[claimed_task]
                 
-                # Bidding
-                if (claimed_task == self.claim and 
+                # Bidding  ''' I HAVE A DOUBT HERE!!!!!'''
+                if (claimed_task == self.claim and      # my current claim which is other's prev claim
                     (claimed_cost < _winner_cost or (claimed_cost == _winner_cost and sender_id < _winner_id))):
                     _winner_id = sender_id
                     _winner_cost = claimed_cost
@@ -256,10 +256,7 @@ class Agent:
         if _winner_id == self.id:
             self.queue.append(self.claim)
 
-        # region SOLVE FOR VELOCITIES
-        '''solve for velocities'''
-        # initialise velocity values
-        vx = vy = 0
+        # region Target task?
         target_task = None
 
         # get E1:
@@ -276,11 +273,9 @@ class Agent:
         # get Q1:
         task_q1 = self.queue[0] if len(self.queue) > 0 else None
 
-        # case 1: E1 does not exist
-        if task_e1 is None:
-            # sub case: but Q1 exist -> target Q1 only
-            if task_q1 is not None:
-                target_task = task_q1
+        # case 1: E1 does not exist but Q1 exist -> target Q1 only
+        if task_e1 is None and task_q1 is not None:
+            target_task = task_q1
         
         # case 2: E1 exists
         else:
@@ -343,9 +338,12 @@ class Agent:
                     else:
                         target_task = task_q1
                 
-        # now we have "target_task"
+        # endregion
         
-        # UPDATE VELOCITIES NOW
+        # region VELOCITIES update
+        '''solve for velocities'''
+        # initialise velocity values
+        vx = vy = 0
         
         # "target_task" is some finite task
         if target_task is not None:
