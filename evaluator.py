@@ -186,12 +186,13 @@ def run(scn, agent_cls, log_path, trace_path=None):
                     # accept higher term or first leader if none
                     if term > current_term or current_leader is None:
                         # if we are after a failure and new leader different, record election time if not set
-                        print(f"failed_agent = {failed_agent}, agent_id = {agent_id}, time = {time_t}, fail_at = {fail_at}")
+                        # print(f"failed_agent = {failed_agent}, agent_id = {agent_id}, time = {time_t}, fail_at = {fail_at}")
                         if failed_agent is not None and agent_id != failed_agent and leader_elected_after_fail is None:
                             
                             leader_elected_after_fail = time_t - fail_at
                         current_term = term
-                        current_leader = agent_id; print(f"Leader elected as {current_leader} at time = {time_t}")
+                        current_leader = agent_id; 
+                        # print(f"Leader elected as {current_leader} at time = {time_t}")
 
 
         #7. This block actually moves the agents in the world and measures how far they travel - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

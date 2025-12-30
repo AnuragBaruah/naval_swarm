@@ -31,9 +31,10 @@ class Agent:
         # command switches
         self.reclaim = False
         self.exchange = False
-        self.m1 = True
-        self.current_leader = 0
-        self.leader_not_observed = 0
+        self.leader_exists = False
+        self.is_leader = False
+        self.leader_term = 0
+        self.lead_notify = False
 
         # region - DEBUG
         # DEBUG FEATURES
@@ -215,6 +216,8 @@ class Agent:
         # inbox data: [{'from': 0, 'msg': {...}}, {'from': 1, 'msg': {...}}]
         _winner_id = None
         _winner_cost = math.inf
+        _best_lead = math.inf
+        self.leader_exists = False
         for M in inbox:
             sender_id = M["from"]
             msg = M["msg"]
@@ -249,12 +252,34 @@ class Agent:
                     self.exp_done_msg_required = False
                     if exp_done_taskid in exploration_tasks: del exploration_tasks[exp_done_taskid]
                     if exp_done_taskid in self.queue: self.queue.remove(exp_done_taskid)
+
+            # if message contains the keyword "role" : existence of leader
+            if "role" in msg:
+                self.leader_exists = True
+                # if "special" format message was successfully sent then switch off flag to send special message
+                if "type" in msg and sender_id == self.id:
+                    self.lead_notify = False
+
+            # if message contains the keyword "me_lead" : initiate leader bidding
+            if "me_lead" in msg and sender_id < _best_lead:
+                _best_lead = sender_id
         
         # endregion
 
         # check if agent won bidding
         if _winner_id == self.id:
             self.queue.append(self.claim)
+
+        # check leader bidding
+        if _best_lead != math.inf:
+            self.leader_exists = True
+            self.leader_term += 1
+            if _best_lead == self.id:
+                self.is_leader = True
+                self.lead_notify = True
+            else:
+                self.is_leader = False
+                self.lead_notify = False
 
         # region Target task?
         target_task = None
@@ -398,10 +423,24 @@ class Agent:
         # KCA task release MESSAGE
         if self.release_task is not None:
             send_msg["release"] = self.release_task
+
+        # leader related messages
+        # if no leader exists -> participate in leader bidding 
+        if not self.leader_exists:
+            send_msg["me_lead"] = True
+        # leader exists | if agent is leader:  
+        elif self.is_leader:
+            # send simple existantial message to let everyone know agent is alive
+            send_msg["role"] = "leader"
+            # agent needs to notify to evaluator -> send specific format message
+            if self.lead_notify:
+                send_msg["type"] = "role"
+                send_msg["term"] = self.leader_term
+                print(f"term = {self.leader_term}, Agent {self.id} : elected leader at time = {t}")
          
         # endregion
 
-        # send message only if "send_msg" is polulated
+        # send message only if "send_msg" is populated
         if send_msg != {}:
             self.outbox = [send_msg]
         else:
