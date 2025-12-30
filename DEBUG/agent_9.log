@@ -1,36 +1,90 @@
 QUEUE UPDATED 
-TIMESTAMP = 36.0
+TIMESTAMP = 55.0
+queue = [15]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 149.0
 queue = [7]
 caps  = []
 no_cap= []
 *******************
 QUEUE UPDATED 
-TIMESTAMP = 79.0
+TIMESTAMP = 219.0
+queue = [19]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 221.0
+queue = [20]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 222.0
+queue = [8]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 238.0
+queue = [10]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED NON-CAP UPDATED 
+TIMESTAMP = 367.0
 queue = []
 caps  = []
-no_cap= []
+no_cap= ['sea3']
 *******************
 QUEUE UPDATED 
-TIMESTAMP = 209.0
-queue = [11]
+TIMESTAMP = 368.0
+queue = [18]
 caps  = []
-no_cap= []
+no_cap= ['sea3']
+*******************
+CAPS UPDATED 
+TIMESTAMP = 524.0
+queue = [18]
+caps  = ['thermal']
+no_cap= ['sea3']
 *******************
 QUEUE UPDATED 
-TIMESTAMP = 256.0
-queue = [11, 12]
-caps  = []
-no_cap= []
-*******************
-QUEUE UPDATED 
-TIMESTAMP = 290.0
-queue = [12]
-caps  = []
-no_cap= []
-*******************
-QUEUE UPDATED 
-TIMESTAMP = 360.0
+TIMESTAMP = 525.0
 queue = []
-caps  = []
-no_cap= []
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 538.0
+queue = [25]
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 622.0
+queue = []
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 639.0
+queue = [20]
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+CAPS UPDATED 
+TIMESTAMP = 779.0
+queue = [20]
+caps  = ['thermal', 'lift1']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 780.0
+queue = []
+caps  = ['thermal', 'lift1']
+no_cap= ['sea3']
 *******************

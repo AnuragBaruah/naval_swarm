@@ -1,36 +1,114 @@
 QUEUE UPDATED 
-TIMESTAMP = 206.0
+TIMESTAMP = 58.0
+queue = [8]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 63.0
+queue = [19]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 77.0
+queue = [21]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 99.0
 queue = [18]
 caps  = []
 no_cap= []
 *******************
 QUEUE UPDATED 
-TIMESTAMP = 237.0
+TIMESTAMP = 150.0
+queue = [7]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 219.0
 queue = []
 caps  = []
 no_cap= []
 *******************
 QUEUE UPDATED 
-TIMESTAMP = 286.0
+TIMESTAMP = 221.0
+queue = [20]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 222.0
+queue = [6]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 226.0
+queue = []
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 238.0
+queue = [10]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 256.0
+queue = [10, 4]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 258.0
+queue = [25, 4]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 259.0
 queue = [4]
 caps  = []
 no_cap= []
 *******************
 QUEUE UPDATED 
-TIMESTAMP = 358.0
-queue = [4, 9]
-caps  = []
-no_cap= []
-*******************
-QUEUE UPDATED 
-TIMESTAMP = 365.0
-queue = [9]
-caps  = []
-no_cap= []
-*******************
-QUEUE UPDATED 
-TIMESTAMP = 448.0
+TIMESTAMP = 405.0
 queue = []
 caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 438.0
+queue = [18]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 525.0
+queue = []
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 555.0
+queue = [6]
+caps  = []
+no_cap= []
+*******************
+CAPS UPDATED 
+TIMESTAMP = 662.0
+queue = [6]
+caps  = ['lift1']
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 663.0
+queue = []
+caps  = ['lift1']
 no_cap= []
 *******************

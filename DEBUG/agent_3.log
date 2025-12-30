@@ -1,0 +1,114 @@
+QUEUE UPDATED 
+TIMESTAMP = 14.0
+queue = [14]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 82.0
+queue = [18]
+caps  = []
+no_cap= []
+*******************
+CAPS UPDATED 
+TIMESTAMP = 97.0
+queue = [18]
+caps  = ['thermal']
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 98.0
+queue = [21, 18]
+caps  = ['thermal']
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 99.0
+queue = [19, 18, 22]
+caps  = ['thermal']
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 150.0
+queue = [19, 22]
+caps  = ['thermal']
+no_cap= []
+*******************
+QUEUE UPDATED NON-CAP UPDATED 
+TIMESTAMP = 205.0
+queue = [22]
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 206.0
+queue = [7, 22]
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 219.0
+queue = [22]
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 221.0
+queue = [20, 22]
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 222.0
+queue = [6, 22]
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 225.0
+queue = [22]
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 400.0
+queue = []
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 506.0
+queue = [25]
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 538.0
+queue = []
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 590.0
+queue = [20]
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 639.0
+queue = []
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 752.0
+queue = [23]
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 758.0
+queue = []
+caps  = ['thermal']
+no_cap= ['sea3']
+*******************

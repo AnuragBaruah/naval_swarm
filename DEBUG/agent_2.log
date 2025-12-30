@@ -1,24 +1,162 @@
 QUEUE UPDATED 
-TIMESTAMP = 74.0
-queue = [13]
+TIMESTAMP = 58.0
+queue = [8]
 caps  = []
 no_cap= []
 *******************
 QUEUE UPDATED 
-TIMESTAMP = 124.0
+TIMESTAMP = 63.0
+queue = [19]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 66.0
+queue = [22]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 76.0
+queue = [18]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 77.0
+queue = [21]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 99.0
 queue = []
 caps  = []
 no_cap= []
 *******************
 QUEUE UPDATED 
-TIMESTAMP = 176.0
+TIMESTAMP = 102.0
+queue = [3]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 170.0
+queue = [3, 26]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 189.0
+queue = [26]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 203.0
+queue = [26, 2]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 208.0
 queue = [2]
 caps  = []
 no_cap= []
 *******************
 QUEUE UPDATED 
-TIMESTAMP = 218.0
+TIMESTAMP = 210.0
+queue = [23, 2]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 211.0
+queue = [23]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 212.0
+queue = [7]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 219.0
 queue = []
 caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 221.0
+queue = [6]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 226.0
+queue = []
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 238.0
+queue = [10]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 243.0
+queue = [10, 11]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 258.0
+queue = [25, 11]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 259.0
+queue = [11]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 427.0
+queue = []
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 448.0
+queue = [18]
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 525.0
+queue = []
+caps  = []
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 562.0
+queue = [6]
+caps  = []
+no_cap= []
+*******************
+CAPS UPDATED 
+TIMESTAMP = 662.0
+queue = [6]
+caps  = ['lift1']
+no_cap= []
+*******************
+QUEUE UPDATED 
+TIMESTAMP = 663.0
+queue = []
+caps  = ['lift1']
 no_cap= []
 *******************
