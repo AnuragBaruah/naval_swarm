@@ -1,5 +1,7 @@
 import argparse, importlib.util, json, math, os, random
 from copy import deepcopy
+import pygame
+
 
 def load_team(team_path):
     spec = importlib.util.spec_from_file_location("team_mod", team_path)
@@ -17,6 +19,149 @@ def dist(a, b):
 
 def clamp(v, lo, hi):
     return max(lo, min(hi, v))
+
+'''Pygame Visualization'''
+def world_to_screen(x, y, area, screen_w, screen_h):
+    xmin, xmax, ymin, ymax = area
+    sx = int((x - xmin) / (xmax - xmin) * screen_w)
+    sy = int(screen_h - (y - ymin) / (ymax - ymin) * screen_h)
+    return sx, sy
+
+class PygameVisualizer:
+    def __init__(self, scn):
+        pygame.init()
+        self.screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+        self.W, self.H = self.screen.get_size()
+        pygame.display.set_caption("Swarm Simulation")
+        self.area = scn["area"]
+        self.service_radius = scn.get("service_radius", 10.0)
+        self.clock = pygame.time.Clock()
+        self.paused = False
+        self.running = True
+        self.font = pygame.font.SysFont(None, 20)
+        self.colors = [
+            (255, 233, 0),   # Electric Yellow
+            (57, 255, 20),   # Neon Lime
+            (255, 145, 0),   # Safety Orange
+            (255, 0, 144),   # Bright Magenta
+            (0, 255, 255),   # Cyan
+            (105, 240, 174), # Mint Green
+            (224, 64, 251),  # Electric Lavender
+            (255, 82, 82),   # Coral Red
+            (255, 215, 0),   # Goldenrod
+            (224, 224, 224)  # Platinum
+        ]        
+        self.trails = {}  # agent_id → list[(x,y)]
+
+    # Handles close window, pause simulation
+    def handle_events(self):
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                self.running = False
+            if e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
+                self.running = False
+
+    # axis
+    def draw_axes(self):
+        # world origin
+        x0, y0 = world_to_screen(0, 0, self.area, self.W, self.H)
+        # X axis (horizontal)
+        pygame.draw.line(
+            self.screen,
+            (0, 0, 0),
+            (0, y0),
+            (self.W, y0),
+            2
+        )
+        # Y axis (vertical)
+        pygame.draw.line(
+            self.screen,
+            (0, 0, 0),
+            (x0, 0),
+            (x0, self.H),
+            2
+        )
+
+    # Task
+    def draw_task(self, task, time_t):
+        # not started yet task
+        if time_t < task["t0"]:
+            return
+        # completed -> disappear
+        if task["done"]:
+            return
+        # dead → grey
+        if time_t > task["deadline"]:
+            color = (160, 160, 160)   # grey
+        else:
+            # active
+            color = (180, 0, 0)       # red
+        x, y = world_to_screen(task["x"], task["y"], self.area, self.W, self.H)
+        r = int(self.service_radius * self.W / (self.area[1]-self.area[0]))
+        pygame.draw.circle(self.screen, color, (x,y), r*2, 2)
+        # draw task id text
+        text = self.font.render(str(task["id"]), True, (255,255,255))
+        rect = text.get_rect(center=(x, y))
+        self.screen.blit(text, rect)
+
+    # Agent
+    def draw_agent(self, agent, vx, vy):
+        if not agent["alive"]:
+            return
+        x, y = world_to_screen(agent["x"], agent["y"], self.area, self.W, self.H)
+        color = self.colors[agent["id"] % len(self.colors)]
+
+        # trail:
+        self.trails.setdefault(agent["id"], []).append((x,y))
+        if len(self.trails[agent["id"]]) > 1:       #Draws the agent’s movement trail as connected line segments
+            pygame.draw.lines(self.screen, color, False, self.trails[agent["id"]], 2)      #pygame.draw.lines(surface, color, closed, point_list, width)
+
+        # Arrow:
+        angle = math.atan2(-vy, vx)
+        L_body = 12      # rectangle length
+        W_body = 3       # rectangle width
+        # Direction vectors
+        dx = math.cos(angle)
+        dy = math.sin(angle)
+        px = -dy   # perpendicular
+        py = dx
+        # Rectangle (shaft):
+        body_front = (x + dx * (L_body/2), y + dy * (L_body/2))
+        body_back  = (x - dx * (L_body/2), y - dy * (L_body/2))
+        r1 = (body_back[0] + px*(W_body/2), body_back[1] + py*(W_body/2))
+        r2 = (body_back[0] - px*(W_body/2), body_back[1] - py*(W_body/2))
+        r3 = (body_front[0] - px*(W_body/2), body_front[1] - py*(W_body/2))
+        r4 = (body_front[0] + px*(W_body/2), body_front[1] + py*(W_body/2))
+        pygame.draw.polygon(self.screen, color, [r1, r2, r3, r4])
+        # Triangle (head):
+        S = 18                         # side length (increase to make bigger)
+        H = S * math.sqrt(3) / 2       # height of equilateral triangle
+        base_x = x + dx * (L_body / 2)  ## base center at front of body
+        base_y = y + dy * (L_body / 2)
+        tip = (base_x + dx * H, base_y + dy * H)    ## triangle points
+        p1  = (base_x + px * (S/2), base_y + py * (S/2))
+        p2  = (base_x - px * (S/2), base_y - py * (S/2))
+        pygame.draw.polygon(self.screen, color, [tip, p1, p2])
+        # id display
+        # centroid of triangle
+        cx = (tip[0] + p1[0] + p2[0]) / 3
+        cy = (tip[1] + p1[1] + p2[1]) / 3
+        text = self.font.render(str(agent["id"]), True, (0,0,0))
+        rect = text.get_rect(center=(cx,cy))
+        self.screen.blit(text, rect)
+
+    # Renders one animation frame
+    def render(self, agents, tasks, desired, time_t):
+        self.screen.fill((20,60,160))
+        self.draw_axes()
+        for task in tasks:
+            self.draw_task(task, time_t)
+        for i,a in enumerate(agents):
+            vx, vy = desired[i]
+            self.draw_agent(a, vx, vy)
+        pygame.display.flip()       #Makes the drawn frame visible.
+        self.clock.tick(30)
+
 
 def run(scn, agent_cls, log_path, trace_path=None):
     random.seed(scn["seed"])
@@ -99,7 +244,18 @@ def run(scn, agent_cls, log_path, trace_path=None):
     total_dist = 0.0
     trace = [] if trace_path else None
 
+    '''For pygame Visualization'''
+    viz = PygameVisualizer(scn)
+
     while time_t < T:
+        '''For pygame Visualization'''
+        viz.handle_events()
+        if not viz.running:
+            break
+        if viz.paused:
+            viz.clock.tick(30)
+            continue
+
         # Check failure injection
         if fail_at is not None and failed_agent is None and time_t >= fail_at:
             # by default, fail current leader if known, else agent 0
@@ -184,6 +340,9 @@ def run(scn, agent_cls, log_path, trace_path=None):
             d = math.hypot(a["x"]-oldx, a["y"]-oldy)
             a["dist"] += d
             total_dist += d
+
+        '''For pygame Visualization'''
+        viz.render(agents, tasks, desired, time_t)
 
         # Service tasks (capability-aware)
         for task in tasks:
@@ -322,6 +481,12 @@ def run(scn, agent_cls, log_path, trace_path=None):
     if trace_path and trace is not None:
         with open(trace_path,"w") as f: json.dump({"trace": trace}, f, separators=(",",":"))
     print(json.dumps(summary, indent=2))
+    
+    '''For pygame Visualization'''
+    pygame.event.clear()
+    pygame.display.quit()
+    pygame.quit()
+    
     return summary
 
 def main():

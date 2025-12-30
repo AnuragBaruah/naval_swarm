@@ -1,0 +1,123 @@
+==================================================================================
+=================---agent_pro_a.py---=================
+=========================================
+Running Scenario S1
+=========================================
+{
+  "scenario": "S1",
+  "value_ratio": 1.0,
+  "norm_distance": 0.0819,
+  "norm_bytes": 0.0004,
+  "score": 0.5335,
+  "convergence_s": null,
+  "leader_election_s": null,
+  "penalty": 0.05,
+  "cap_tasks_done": 0,
+  "cap_tasks_total": 0,
+  "total_dist_m": 4422.0,
+  "total_bytes": 32189
+}
+=========================================
+Running Scenario S2
+=========================================
+{
+  "scenario": "S2",
+  "value_ratio": 1.0,
+  "norm_distance": 0.1008,
+  "norm_bytes": 0.001,
+  "score": 0.5796,
+  "convergence_s": 59.0,
+  "leader_election_s": null,
+  "penalty": 0.0,
+  "cap_tasks_done": 0,
+  "cap_tasks_total": 0,
+  "total_dist_m": 5442.0,
+  "total_bytes": 37053
+}
+=========================================
+Running Scenario S3
+=========================================
+{
+  "scenario": "S3",
+  "value_ratio": 0.9545,
+  "norm_distance": 0.1704,
+  "norm_bytes": 0.0023,
+  "score": 0.4882,
+  "convergence_s": null,
+  "leader_election_s": null,
+  "penalty": 0.05,
+  "cap_tasks_done": 0,
+  "cap_tasks_total": 0,
+  "total_dist_m": 7670.0,
+  "total_bytes": 40571
+}
+=========================================
+Running Scenario S4
+=========================================
+{
+  "scenario": "S4",
+  "value_ratio": 1.0,
+  "norm_distance": 0.0942,
+  "norm_bytes": 0.0002,
+  "score": 0.5311,
+  "convergence_s": null,
+  "leader_election_s": null,
+  "penalty": 0.05,
+  "cap_tasks_done": 0,
+  "cap_tasks_total": 0,
+  "total_dist_m": 5936.0,
+  "total_bytes": 28817
+}
+=========================================
+Running Scenario S5
+=========================================
+{
+  "scenario": "S5",
+  "value_ratio": 1.0,
+  "norm_distance": 0.1769,
+  "norm_bytes": 0.0006,
+  "score": 0.5645,
+  "convergence_s": 59.0,
+  "leader_election_s": null,
+  "penalty": 0.0,
+  "cap_tasks_done": 0,
+  "cap_tasks_total": 0,
+  "total_dist_m": 9552.0,
+  "total_bytes": 42070
+}
+=========================================
+Running Scenario S6
+=========================================
+{
+  "scenario": "S6",
+  "value_ratio": 1.0,
+  "norm_distance": 0.1242,
+  "norm_bytes": 0.0004,
+  "score": 0.5751,
+  "convergence_s": 59.0,
+  "leader_election_s": 1.0,
+  "penalty": 0.0,
+  "cap_tasks_done": 0,
+  "cap_tasks_total": 0,
+  "total_dist_m": 6708.0,
+  "total_bytes": 30991
+}
+=========================================
+Running Scenario S7
+=========================================
+{
+  "scenario": "S7",
+  "value_ratio": 0.8116,
+  "norm_distance": 0.4966,
+  "norm_bytes": 0.0005,
+  "score": 0.3875,
+  "convergence_s": 59.0,
+  "leader_election_s": null,
+  "penalty": 0.0,
+  "cap_tasks_done": 9,
+  "cap_tasks_total": 14,
+  "total_dist_m": 26814.0,
+  "total_bytes": 34371
+}
+
+All scenarios completed.
