@@ -123,7 +123,7 @@ class Agent:
 
         # region claim and/or explore
         '''claim and/or exploration'''
-        self.claim = None
+        current_claim = None
         current_claim_distance_cost = math.inf
         _claim_cap_type = None # "KCA" and "KCC"
         exploration_tasks = {} # {taskid : distance}
@@ -155,7 +155,7 @@ class Agent:
                 # no competing task yet -> update 1st competing task
                 if _claim_cap_type is None:
                     current_claim_distance_cost = _dist
-                    self.claim = taskid
+                    current_claim = taskid
                     _claim_cap_type = "KCA"
                 
                 # if competing task is KCA
@@ -164,17 +164,17 @@ class Agent:
                         _dist < current_claim_distance_cost or # comparison based on distance
                         (
                             _dist == current_claim_distance_cost and 
-                            all_tasks_from_id[taskid]["deadline"] < all_tasks_from_id[self.claim]["deadline"] # comparison based on deadline if distance is same
+                            all_tasks_from_id[taskid]["deadline"] < all_tasks_from_id[current_claim]["deadline"] # comparison based on deadline if distance is same
                         )
                     )
                 ):
                     current_claim_distance_cost = _dist
-                    self.claim = taskid
+                    current_claim = taskid
 
                 # # if competing task is KCC (KCC always wins for now)
                 # elif _dist < current_claim_distance_cost and :
                 #     current_claim_distance_cost = _dist
-                #     self.claim = taskid
+                #     current_claim = taskid
                 #     _claim_cap_type = "KCA"
 
             # agent has required capability for this task -> KCC
@@ -182,7 +182,7 @@ class Agent:
                 # no competing task yet -> update 1st competing task
                 if _claim_cap_type is None:
                     current_claim_distance_cost = _dist
-                    self.claim = taskid
+                    current_claim = taskid
                     _claim_cap_type = "KCC"
                 
                 # if competing task is KCC
@@ -191,17 +191,17 @@ class Agent:
                         _dist < current_claim_distance_cost or # comparison based on distance
                         (
                             _dist == current_claim_distance_cost and 
-                            all_tasks_from_id[taskid]["deadline"] < all_tasks_from_id[self.claim]["deadline"] # comparison based on deadline if distance is same
+                            all_tasks_from_id[taskid]["deadline"] < all_tasks_from_id[current_claim]["deadline"] # comparison based on deadline if distance is same
                         )
                     )
                 ):
                     current_claim_distance_cost = _dist
-                    self.claim = taskid
+                    current_claim = taskid
                 
                 # if competing task is KCA (KCC always wins for now)
                 else:
                     current_claim_distance_cost = _dist
-                    self.claim = taskid
+                    current_claim = taskid
                     _claim_cap_type = "KCC"
 
             # agent does NOT have required capability for this task -> KR
@@ -234,8 +234,8 @@ class Agent:
                 if claimed_task in exploration_tasks and claimed_cost <= exploration_tasks[claimed_task]:
                     del exploration_tasks[claimed_task]
                 
-                # Bidding  ''' I HAVE A DOUBT HERE!!!!!'''
-                if (claimed_task == self.claim and      # my current claim which is other's prev claim
+                # Bidding
+                if (claimed_task == self.claim and      
                     (claimed_cost < _winner_cost or (claimed_cost == _winner_cost and sender_id < _winner_id))):
                     _winner_id = sender_id
                     _winner_cost = claimed_cost
@@ -330,6 +330,8 @@ class Agent:
                         self.unavailable_tasks.append(task_e1)
                         # release task Q1 (KCA) from queue for other agents : prepare for message, release only when message is sent
                         self.release_task = task_q1
+                    else:
+                        target_task = task_q1
                         
                 
                 # Q1 is KCC
@@ -348,6 +350,8 @@ class Agent:
                         # also add to queue at starting point and add to unavailable_tasks
                         self.queue.insert(0, task_e1)
                         self.unavailable_tasks.append(task_e1)
+                    else:
+                        target_task = task_q1
                 
                 # Q1 is UC
                 else:
@@ -412,6 +416,7 @@ class Agent:
         send_msg = {}
 
         # claim - cost MESSAGE
+        self.claim = current_claim
         if self.claim is not None:
             send_msg["claim"] = self.claim
             send_msg["cost"] = current_claim_distance_cost
@@ -436,7 +441,6 @@ class Agent:
             if self.lead_notify:
                 send_msg["type"] = "role"
                 send_msg["term"] = self.leader_term
-                print(f"term = {self.leader_term}, Agent {self.id} : elected leader at time = {t}")
          
         # endregion
 
