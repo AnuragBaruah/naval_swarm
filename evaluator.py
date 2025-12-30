@@ -248,7 +248,7 @@ def run(scn, agent_cls, log_path, trace_path=None):
                 total += 1
                 same = all((tid in m and m[tid]==last_map[tid]) for m in assignment_hist[-window:])
                 if same: stable += 1
-            if total>0 and stable/total>=0.95:
+            if total>0 and stable/total>=0.95:        
                 convergence_tick = tick
 
 
