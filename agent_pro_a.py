@@ -208,7 +208,7 @@ class Agent:
         # endregion
         
 
-        # region claim and/or explore
+        # region claim and/or explore//
         '''claim and/or exploration'''
         current_claim = None
         current_claim_distance_cost = math.inf
@@ -473,7 +473,7 @@ class Agent:
 
         # exp_done MESSAGE
         if self.exp_done_msg_required:
-            send_msg["exp_done"] = target_task
+            send_msg["exp_done"] = target_task 
 
         # KCA task release MESSAGE
         if self.release_task is not None:
