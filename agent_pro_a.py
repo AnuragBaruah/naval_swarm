@@ -2,6 +2,7 @@ import math, random
 
 # import for debug purposes
 import atexit
+import sys
 
 def dist(ax, ay, bx, by):
     return ((ax-bx)**2 + (ay-by)**2) ** 0.5
@@ -27,6 +28,10 @@ class Agent:
         self.non_capabilities = []
         self.task_doing_counter = 0
         self.exp_done_msg_required = False
+        self.outbox = []
+        # safeguard stuff
+        self.prev_rem_times = None
+        self.already_safeguarded_tasks = []
 
         # command switches
         self.reclaim = False
@@ -35,6 +40,7 @@ class Agent:
         self.is_leader = False
         self.leader_term = 0
         self.lead_notify = False
+        self.warning_task = None
 
         # region - DEBUG
         # DEBUG FEATURES
@@ -80,9 +86,10 @@ class Agent:
         cost = 0
         x, y = self.x, self.y
         for q in self.queue:
-            cost += dist(x, y, all_tasks[q]["x"], all_tasks[q]["y"])
-            cost += all_tasks[q]["remaining"] * self.max_speed
-            x, y = all_tasks[q]["x"], all_tasks[q]["y"]
+            if q in all_tasks:
+                cost += dist(x, y, all_tasks[q]["x"], all_tasks[q]["y"])
+                cost += all_tasks[q]["remaining"] * self.max_speed
+                x, y = all_tasks[q]["x"], all_tasks[q]["y"]
         
         cost += dist(x, y, all_tasks[taskid]["x"], all_tasks[taskid]["y"])
         return cost
@@ -95,9 +102,12 @@ class Agent:
         active_tasks_ids = [task["id"] for task in tasks_visible] 
         all_tasks_from_id = dict(zip(active_tasks_ids, tasks_visible))     # getting a "id to task" mapping for ease of access
 
-        # region INBOX handling (Pre - Task)
-        '''Check INBOX'''
-        # inbox data: [{'from': 0, 'msg': {...}}, {'from': 1, 'msg': {...}}]
+        # region INBOX handling - handle all (except one) inbox related tasks
+        '''INBOX handling - handle all (except one) inbox related tasks'''
+        _winner_id = None
+        _winner_cost = math.inf
+        _best_lead = math.inf
+        self.leader_exists = False
         for M in inbox:
             sender_id = M["from"]
             msg = M["msg"]
@@ -111,6 +121,70 @@ class Agent:
                     self.queue.remove(_released_task_id)
                     self.release_task = None
 
+            # if "warning" is sent -> forfeit task | if agent itself sent warning; then turn off flag
+            if "warning" in msg:
+                _w = msg["warning"]
+                if sender_id == self.id:
+                    self.warning_task = None
+                elif _w in self.queue:
+                    self.queue.remove(_w)
+
+            # if msg contains keyword "claim"
+            if "claim" in msg:
+                claimed_task = msg["claim"]
+                claimed_cost = msg["cost"]
+
+                # move claimed task to unavailable tasks
+                if claimed_task not in self.unavailable_tasks: self.unavailable_tasks.append(claimed_task)
+                
+                # Bidding
+                if (claimed_task == self.claim and      
+                    (claimed_cost < _winner_cost or (claimed_cost == _winner_cost and sender_id < _winner_id))):
+                    _winner_id = sender_id
+                    _winner_cost = claimed_cost
+                
+                # if someone claims task already in agent's queue | late claim or due to safeguard
+                elif claimed_task in self.queue:
+                    # check if claimed cost is better than your cost -> forfeit task
+                    if claimed_cost < self.compute_distance_cost(all_tasks_from_id, claimed_task):
+                        self.queue.remove(claimed_task)
+                    # else -> send warning signal to notify other agents to remove from queue
+                    else:
+                        self.warning_task = claimed_task
+            
+            # if message contains the keyword "role" : existence of leader
+            if "role" in msg:
+                self.leader_exists = True
+                # if "special" format message was successfully sent then switch off flag to send special message
+                if "type" in msg and sender_id == self.id:
+                    self.lead_notify = False
+
+            # if message contains the keyword "me_lead" : initiate leader bidding
+            if "me_lead" in msg and sender_id < _best_lead:
+                _best_lead = sender_id
+        
+        # endregion
+
+        reclaim_possibility = False # for task bidding packet loss handling
+        # check if agent won bidding
+        if _winner_id == self.id:
+            self.queue.append(self.claim)
+        # agent claimed, did not win but still cost is less than winner_cost -> packet loss happened and reclaim and makes sense
+        # agent's message was never recieved
+        elif self.claim is not None and self.outbox[0]["cost"] < _winner_cost:
+            reclaim_possibility = True
+
+        # check leader bidding
+        if _best_lead != math.inf:
+            self.leader_exists = True
+            self.leader_term += 1
+            if _best_lead == self.id:
+                self.is_leader = True
+                self.lead_notify = True
+            else:
+                self.is_leader = False
+                self.lead_notify = False
+
         # endregion
 
         # MAKING AVAILABLE TASKS LIST
@@ -119,6 +193,19 @@ class Agent:
 
         # delete inactive tasks from queue
         self.queue = [t for t in self.queue if t in active_tasks_ids]
+
+        # region safeguard against undone tasks
+        if len(self.queue) == 0:
+            _u = [t for t in self.unavailable_tasks if t not in self.already_safeguarded_tasks]
+            for taskid in _u:
+                _task = all_tasks_from_id[taskid]
+                if _task["remaining"] == _task["service"] or _task["remaining"] == self.prev_rem_times[taskid]:
+                    _dist = dist(self.x, self.y, _task["x"], _task["y"])
+                    if _task["deadline"] - (t + _task["service"] + _dist / self.max_speed) < 4*dt:
+                        self.unavailable_tasks.remove(taskid)
+                        available_task_ids.append(taskid)
+                        self.already_safeguarded_tasks.append(taskid)
+        # endregion
         
 
         # region claim and/or explore//
@@ -127,6 +214,8 @@ class Agent:
         current_claim_distance_cost = math.inf
         _claim_cap_type = None # "KCA" and "KCC"
         exploration_tasks = {} # {taskid : distance}
+
+        # if self.id == 4: print(f"*******\ntimestamp = {t}\nactive_tasks = {active_tasks_ids}\navailable = {available_task_ids}\nUNavailable = {self.unavailable_tasks}\n*********")
         
         for taskid in available_task_ids:
             # task capability requirement
@@ -211,35 +300,18 @@ class Agent:
 
         # endregion
 
-        # region INBOX handling
-        '''Check INBOX'''
-        # inbox data: [{'from': 0, 'msg': {...}}, {'from': 1, 'msg': {...}}]
-        _winner_id = None
-        _winner_cost = math.inf
-        _best_lead = math.inf
-        self.leader_exists = False
+        # region INBOX handling only for removing unnecessary exploration tasks
+        '''INBOX handling only for removing unnecessary exploration tasks'''
         for M in inbox:
-            sender_id = M["from"]
             msg = M["msg"]
-
             # if msg contains keyword "claim"
             if "claim" in msg:
                 claimed_task = msg["claim"]
                 claimed_cost = msg["cost"]
-
-                # move claimed task to unavailable tasks
-                self.unavailable_tasks.append(claimed_task)
-                
                 # filter out claimed and "FAR" exploration tasks
                 if claimed_task in exploration_tasks and claimed_cost <= exploration_tasks[claimed_task]:
                     del exploration_tasks[claimed_task]
-                
-                # Bidding
-                if (claimed_task == self.claim and      
-                    (claimed_cost < _winner_cost or (claimed_cost == _winner_cost and sender_id < _winner_id))):
-                    _winner_id = sender_id
-                    _winner_cost = claimed_cost
-            
+
             # if msg contains the keyword "exp_done" -> remove task from queue or remove task from exploration
             if "exp_done" in msg:
                 exp_done_taskid = msg["exp_done"]
@@ -252,34 +324,7 @@ class Agent:
                     self.exp_done_msg_required = False
                     if exp_done_taskid in exploration_tasks: del exploration_tasks[exp_done_taskid]
                     if exp_done_taskid in self.queue: self.queue.remove(exp_done_taskid)
-
-            # if message contains the keyword "role" : existence of leader
-            if "role" in msg:
-                self.leader_exists = True
-                # if "special" format message was successfully sent then switch off flag to send special message
-                if "type" in msg and sender_id == self.id:
-                    self.lead_notify = False
-
-            # if message contains the keyword "me_lead" : initiate leader bidding
-            if "me_lead" in msg and sender_id < _best_lead:
-                _best_lead = sender_id
         
-        # endregion
-
-        # check if agent won bidding
-        if _winner_id == self.id:
-            self.queue.append(self.claim)
-
-        # check leader bidding
-        if _best_lead != math.inf:
-            self.leader_exists = True
-            self.leader_term += 1
-            if _best_lead == self.id:
-                self.is_leader = True
-                self.lead_notify = True
-            else:
-                self.is_leader = False
-                self.lead_notify = False
 
         # region Target task?
         target_task = None
@@ -303,7 +348,7 @@ class Agent:
             target_task = task_q1
         
         # case 2: E1 exists
-        else:
+        elif task_e1 is not None:
             # sub case: but Q1 does not exist -> target E1 only
             if task_q1 is None:
                 target_task = task_e1
@@ -416,7 +461,12 @@ class Agent:
         send_msg = {}
 
         # claim - cost MESSAGE
-        self.claim = current_claim
+        if reclaim_possibility:
+            _c = self.outbox[0]["cost"]
+            if _c < current_claim_distance_cost:
+                current_claim_distance_cost = _c
+        else:
+            self.claim = current_claim
         if self.claim is not None:
             send_msg["claim"] = self.claim
             send_msg["cost"] = current_claim_distance_cost
@@ -428,6 +478,10 @@ class Agent:
         # KCA task release MESSAGE
         if self.release_task is not None:
             send_msg["release"] = self.release_task
+
+        # warning MESSAGE
+        if self.warning_task is not None:
+            send_msg["warning"] = self.warning_task
 
         # leader related messages
         # if no leader exists -> participate in leader bidding 
@@ -452,7 +506,10 @@ class Agent:
 
         #  DEBUG
         if self.debug_mode:
-            self.debug(t) 
+            self.debug(t)
+
+        # safeguard update
+        self.prev_rem_times = {t : all_tasks_from_id[t]["remaining"] for t in self.unavailable_tasks}
         
         return {"vx": vx, "vy": vy}, self.outbox
 
