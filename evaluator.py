@@ -151,6 +151,7 @@ def run(scn, agent_cls, log_path, trace_path=None):
                 # Track claimed ownership if provided
                 if isinstance(m, dict) and m.get("type")=="claim":
                     tid = m.get("task_id", None)
+                    print(f"agent = {i} claimed ownership of task {tid}")
                     if tid is not None:
                         tid = int(tid)
                         new_owner = int(m.get("agent", i))
@@ -158,6 +159,7 @@ def run(scn, agent_cls, log_path, trace_path=None):
                         if prev_owner != new_owner:
                             claim_owner[tid] = new_owner
                             claim_version += 1
+                            print("claim_version =", claim_version)
                 # Leader tracking
                 if isinstance(m, dict) and m.get("type")=="role" and m.get("role")=="leader":
                     term = int(m.get("term", 0))
@@ -282,6 +284,7 @@ def run(scn, agent_cls, log_path, trace_path=None):
     penalty = 0.0
     if conv_sec is None or conv_sec>60.0:
         penalty += 0.05
+        print("conv_sec =", conv_sec)
 
     # Leader election gate if required
     leader_election_s = leader_elected_after_fail

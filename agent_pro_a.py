@@ -41,6 +41,7 @@ class Agent:
         self.leader_term = 0
         self.lead_notify = False
         self.warning_task = None
+        self.ownership = None
 
         # region - DEBUG
         # DEBUG FEATURES
@@ -49,7 +50,7 @@ class Agent:
         self.prev_no_cap = self.non_capabilities.copy()
         
         # general debug mode (in case we want debug mode for all agents)
-        self.debug_mode = True
+        self.debug_mode = False
 
         # # agent based debug mode (in case we want only debug file for particular)
         # if self.id in (<write agent ids here for which we want to get debugs>):
@@ -112,6 +113,10 @@ class Agent:
             sender_id = M["from"]
             msg = M["msg"]
 
+            # ownership handling
+            if "task_id" in msg and sender_id == self.id:
+                self.ownership = None
+
             # release task handing | what happens when agent (self or other) releases KCA task
             if "release" in msg:
                 _released_task_id = msg["release"]
@@ -169,6 +174,7 @@ class Agent:
         # check if agent won bidding
         if _winner_id == self.id:
             self.queue.append(self.claim)
+            self.ownership = self.claim
         # agent claimed, did not win but still cost is less than winner_cost -> packet loss happened and reclaim and makes sense
         # agent's message was never recieved
         elif self.claim is not None and self.outbox[0]["cost"] < _winner_cost:
@@ -321,10 +327,12 @@ class Agent:
                     elif exp_done_taskid in exploration_tasks: del exploration_tasks[exp_done_taskid]
                 # if this agent sent the message and it is recieved, then set messaging flag to false, so that we stop sending the message in later frames
                 else:
+                    self.ownership = exp_done_taskid
                     self.exp_done_msg_required = False
                     if exp_done_taskid in exploration_tasks: del exploration_tasks[exp_done_taskid]
                     if exp_done_taskid in self.queue: self.queue.remove(exp_done_taskid)
         
+        # endregion
 
         # region Target task?
         target_task = None
@@ -459,6 +467,11 @@ class Agent:
         '''OUTBOX handling'''
         # initialisation
         send_msg = {}
+
+        # ownership MESSAGE
+        if self.ownership is not None:
+            send_msg["type"] = "claim"
+            send_msg["task_id"] = self.ownership
 
         # claim - cost MESSAGE
         if reclaim_possibility:
