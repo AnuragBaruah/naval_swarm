@@ -86,6 +86,20 @@ class Agent:
     def close_debug_file(self):
         self.debug_file.close()
     
+    def compute_distance_cost_2(self, all_tasks, taskid):
+        cost = 0
+        x, y = self.x, self.y
+        for q in self.queue:
+            if q == taskid:
+                break
+            if q in all_tasks:
+                cost += dist(x, y, all_tasks[q]["x"], all_tasks[q]["y"])
+                cost += all_tasks[q]["remaining"] * self.max_speed
+                x, y = all_tasks[q]["x"], all_tasks[q]["y"]
+        
+        cost += dist(x, y, all_tasks[taskid]["x"], all_tasks[taskid]["y"])
+        return cost
+
     def compute_distance_cost(self, all_tasks, taskid):
         cost = 0
         x, y = self.x, self.y
