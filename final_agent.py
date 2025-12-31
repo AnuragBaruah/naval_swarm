@@ -41,7 +41,7 @@ class Agent:
         self.leader_term = 0
         self.lead_notify = False
         self.warning_task = None
-        # self.ownership = None
+        self.ownership = None
 
         # region - DEBUG
         # DEBUG FEATURES
@@ -113,9 +113,10 @@ class Agent:
             sender_id = M["from"]
             msg = M["msg"]
 
-            # # ownership handling
-            # if "task_id" in msg and sender_id == self.id:
-            #     self.ownership = None
+            # ownership handling
+            if "task_id" in msg and sender_id == self.id:
+                # pass
+                self.ownership = None
 
             # release task handing | what happens when agent (self or other) releases KCA task
             if "release" in msg:
@@ -174,7 +175,7 @@ class Agent:
         # check if agent won bidding
         if _winner_id == self.id:
             self.queue.append(self.claim)
-            # self.ownership = self.claim
+            self.ownership = self.claim
         # agent claimed, did not win but still cost is less than winner_cost -> packet loss happened and reclaim and makes sense
         # agent's message was never recieved
         elif self.claim is not None and self.outbox[0]["cost"] < _winner_cost:
@@ -204,7 +205,7 @@ class Agent:
         if len(self.queue) == 0:
             _u = [t for t in self.unavailable_tasks if t not in self.already_safeguarded_tasks]
             for taskid in _u:
-                _task = all_tasks_from_id[taskid]
+                _task = all_tasks_from_id[taskid]        
                 if _task["remaining"] == _task["service"] or _task["remaining"] == self.prev_rem_times[taskid]:
                     _dist = dist(self.x, self.y, _task["x"], _task["y"])
                     if _task["deadline"] - (t + _task["service"] + _dist / self.max_speed) < 4*dt:
@@ -324,13 +325,13 @@ class Agent:
                 # other agent sent the message
                 if sender_id != self.id:
                     if exp_done_taskid in self.queue: self.queue.remove(exp_done_taskid)
-                    elif exp_done_taskid in exploration_tasks: del exploration_tasks[exp_done_taskid]
+                    if exp_done_taskid in exploration_tasks: del exploration_tasks[exp_done_taskid]
                 # if this agent sent the message and it is recieved, then set messaging flag to false, so that we stop sending the message in later frames
                 else:
-                    # self.ownership = exp_done_taskid
+                    self.ownership = exp_done_taskid
                     self.exp_done_msg_required = False
-                    if exp_done_taskid in exploration_tasks: del exploration_tasks[exp_done_taskid]
-                    if exp_done_taskid in self.queue: self.queue.remove(exp_done_taskid)
+                    # if exp_done_taskid in exploration_tasks: del exploration_tasks[exp_done_taskid]
+                    # if exp_done_taskid in self.queue: self.queue.remove(exp_done_taskid)
         
         # endregion
 
@@ -468,10 +469,10 @@ class Agent:
         # initialisation
         send_msg = {}
 
-        # # ownership MESSAGE
-        # if self.ownership is not None:
-        #     send_msg["type"] = "claim"
-        #     send_msg["task_id"] = self.ownership
+        # ownership MESSAGE
+        if self.ownership is not None:
+            send_msg["type"] = "claim"
+            send_msg["task_id"] = self.ownership
 
         # claim - cost MESSAGE
         if reclaim_possibility:
@@ -505,7 +506,7 @@ class Agent:
             # send simple existantial message to let everyone know agent is alive
             send_msg["role"] = "leader"
             # agent needs to notify to evaluator -> send specific format message
-            if self.lead_notify:
+            if self.lead_notify and self.ownership is None:
                 send_msg["type"] = "role"
                 send_msg["term"] = self.leader_term
          
@@ -522,7 +523,7 @@ class Agent:
             self.debug(t)
 
         # safeguard update
-        self.prev_rem_times = {t : all_tasks_from_id[t]["remaining"] for t in self.unavailable_tasks}
+        self.prev_rem_times = {t : all_tasks_from_id[t]["remaining"] for t in active_tasks_ids}
         
         return {"vx": vx, "vy": vy}, self.outbox
 
