@@ -233,6 +233,8 @@ def run(scn, agent_cls, log_path, trace_path=None):
         if len(assignment_hist) >= window and convergence_tick is None:
             stable = 0; total = 0
             last_map = assignment_hist[-1]
+            # print(f"t={time_t}: total={total}, stable={stable}, window={window}, "
+    #   f"len(assignment_hist)={len(assignment_hist)}, lastmap_keys={len(last_map.keys())}")
             # print("last_map is = ", last_map)
             for tid in last_map.keys():
                 total += 1
@@ -241,6 +243,8 @@ def run(scn, agent_cls, log_path, trace_path=None):
             # print("total is = ", total)
             if total>0 and stable/total>=0.95:
                 convergence_tick = tick - last_change_tick  # ticks since last change
+
+        # print(f"claim owner at time = {time_t} : {claim_owner}")
 
         if trace is not None:
             trace.append({
@@ -288,7 +292,7 @@ def run(scn, agent_cls, log_path, trace_path=None):
     penalty = 0.0
     if conv_sec is None or conv_sec>60.0:
         penalty += 0.05
-        # print("conv_sec =", conv_sec)
+        print("conv_sec =", conv_sec)
 
     # Leader election gate if required
     leader_election_s = leader_elected_after_fail

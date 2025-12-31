@@ -4,6 +4,9 @@ import math, random
 import atexit
 import sys
 
+# global
+value_scale = 2
+
 def dist(ax, ay, bx, by):
     return ((ax-bx)**2 + (ay-by)**2) ** 0.5
 
@@ -235,13 +238,14 @@ class Agent:
                 # if the agent can do the task based on deadline:
                 if (t + _dist / self.max_speed + all_tasks_from_id[taskid]["service"] < all_tasks_from_id[taskid]["deadline"]):
                     # calls for exploration
-                    exploration_tasks[taskid] = _dist
+                    _cost = _dist - all_tasks_from_id[taskid]["value"] * value_scale
+                    exploration_tasks[taskid] = _cost
             
             # handling the KC cases 
 
             # distance cost
             _dist = self.compute_distance_cost(all_tasks_from_id, taskid)
-            
+            _cost = _dist - all_tasks_from_id[taskid]["value"] * value_scale
             # can agent physically complete this task before deadline?
             if not (t + _dist / self.max_speed + all_tasks_from_id[taskid]["service"] < all_tasks_from_id[taskid]["deadline"]):
                 continue
@@ -250,21 +254,21 @@ class Agent:
             if _task_req_cap is None:
                 # no competing task yet -> update 1st competing task
                 if _claim_cap_type is None:
-                    current_claim_distance_cost = _dist
+                    current_claim_distance_cost = _cost
                     current_claim = taskid
                     _claim_cap_type = "KCA"
                 
                 # if competing task is KCA
                 elif (
                     _claim_cap_type == "KCA" and (
-                        _dist < current_claim_distance_cost or # comparison based on distance
+                        _cost < current_claim_distance_cost or # comparison based on distance
                         (
-                            _dist == current_claim_distance_cost and 
+                            _cost == current_claim_distance_cost and 
                             all_tasks_from_id[taskid]["deadline"] < all_tasks_from_id[current_claim]["deadline"] # comparison based on deadline if distance is same
                         )
                     )
                 ):
-                    current_claim_distance_cost = _dist
+                    current_claim_distance_cost = _cost
                     current_claim = taskid
 
                 # # if competing task is KCC (KCC always wins for now)
@@ -277,26 +281,26 @@ class Agent:
             elif _task_req_cap in self.capabilities:
                 # no competing task yet -> update 1st competing task
                 if _claim_cap_type is None:
-                    current_claim_distance_cost = _dist
+                    current_claim_distance_cost = _cost
                     current_claim = taskid
                     _claim_cap_type = "KCC"
                 
                 # if competing task is KCC
                 elif (
                     _claim_cap_type == "KCC" and (
-                        _dist < current_claim_distance_cost or # comparison based on distance
+                        _cost < current_claim_distance_cost or # comparison based on distance
                         (
-                            _dist == current_claim_distance_cost and 
+                            _cost == current_claim_distance_cost and 
                             all_tasks_from_id[taskid]["deadline"] < all_tasks_from_id[current_claim]["deadline"] # comparison based on deadline if distance is same
                         )
                     )
                 ):
-                    current_claim_distance_cost = _dist
+                    current_claim_distance_cost = _cost
                     current_claim = taskid
                 
                 # if competing task is KCA (KCC always wins for now)
                 else:
-                    current_claim_distance_cost = _dist
+                    current_claim_distance_cost = _cost
                     current_claim = taskid
                     _claim_cap_type = "KCC"
 
@@ -368,7 +372,7 @@ class Agent:
             # major sub-case: both Q1 and E1 exists
             else:
                 # get distance values
-                _dq = dist(self.x, self.y, all_tasks_from_id[task_q1]["x"], all_tasks_from_id[task_q1]["y"])
+                _dq = dist(self.x, self.y, all_tasks_from_id[task_q1]["x"], all_tasks_from_id[task_q1]["y"]) - all_tasks_from_id[task_q1]["value"] * value_scale
                 _de = exploration_tasks[task_e1]
 
                 # Q1 required capability
@@ -396,10 +400,11 @@ class Agent:
                         all_tasks_from_id[task_e1]["x"],
                         all_tasks_from_id[task_e1]["y"]
                     )
+                    dd = dist(self.x, self.y, all_tasks_from_id[task_e1]["x"], all_tasks_from_id[task_e1]["y"])
                     _ts_e = all_tasks_from_id[task_e1]["service"]
                     _ts_q = all_tasks_from_id[task_q1]["service"]
                     _ded_q = all_tasks_from_id[task_q1]["deadline"]
-                    if (t + (_de + _x) / self.max_speed + _ts_q + _ts_e) <= _ded_q:
+                    if (t + (dd + _x) / self.max_speed + _ts_q + _ts_e) <= _ded_q:
                         target_task = task_e1
                         # also add to queue at starting point and add to unavailable_tasks
                         self.queue.insert(0, task_e1)
@@ -409,7 +414,7 @@ class Agent:
                 
                 # Q1 is UC
                 else:
-                    # compare distance only
+                    # compare cost only
                     if _de < _dq:
                         target_task = task_e1
                         # also add to queue at starting point and add to unavailable_tasks
