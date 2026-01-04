@@ -17,28 +17,25 @@ class Agent:
 
         # initialisation (compulsory)
         self.id = agent_id
-        self.world_bounds = world_bounds
+        #self.world_bounds = world_bounds
         self.max_speed = speed
-        self.max_queue_limit_for_exploration = 3
 
         # initialisation (general)
         self.claim = None
         self.release_task = None
         self.queue = []
         self.unavailable_tasks = []
-        self.cost_of_claim = math.inf
         self.capabilities = []
         self.non_capabilities = []
         self.task_doing_counter = 0
         self.exp_done_msg_required = False
         self.outbox = []
+        self.max_queue_limit_for_exploration = 3
         # safeguard stuff
         self.prev_rem_times = None
         self.already_safeguarded_tasks = []
 
         # command switches
-        self.reclaim = False
-        self.exchange = False
         self.leader_exists = False
         self.is_leader = False
         self.leader_term = 0
@@ -353,7 +350,7 @@ class Agent:
         
         # endregion
 
-        # region Target task?
+        # region Target task
         target_task = None
 
         # get E1:
