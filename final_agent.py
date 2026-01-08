@@ -3,9 +3,26 @@ import math, random
 # import for debug purposes
 import atexit
 import sys
+from pathlib import Path
+import json
 
 # global
 value_scale = 2
+
+# global constants to enable pre set capability:
+pre_set_capability_mode = True
+
+if  pre_set_capability_mode:
+    _base = Path(__file__).resolve().parent
+    _candidates = [
+        _base / "scenarios" / "S7.json",
+        _base.parent / "scenarios" / "S7.json",
+    ]
+    capability_filename_path = None
+    for path in _candidates:
+        if path.exists():
+            capability_filename_path = path
+            break
 
 def dist(ax, ay, bx, by):
     return ((ax-bx)**2 + (ay-by)**2) ** 0.5
@@ -62,7 +79,18 @@ class Agent:
         if self.debug_mode:
             self.debug_file = open(f"DEBUG\\agent_{self.id}.log", "w", buffering = 1)
             atexit.register(self.close_debug_file)
+        
+        # endregion
 
+        # region - HARDCODE - MODE
+        if pre_set_capability_mode and capability_filename_path:
+            with open(capability_filename_path, 'r') as file:
+                data = json.load(file)["agent_caps"]
+            for i in range(len(data)):
+                if i == self.id:
+                    self.capabilities.extend(data[i])
+                else:
+                    self.non_capabilities.extend(data[i])
         # endregion
 
     def debug(self, timestamp):
