@@ -145,6 +145,7 @@ class Agent:
         active_tasks_ids = [task["id"] for task in tasks_visible] 
         all_tasks_from_id = dict(zip(active_tasks_ids, tasks_visible))     # getting a "id to task" mapping for ease of access
 
+
         # region INBOX handling - handle all (except one) inbox related tasks
         '''INBOX handling - handle all (except one) inbox related tasks'''
         _winner_id = None
@@ -212,6 +213,7 @@ class Agent:
                 _best_lead = sender_id
         
         # endregion
+
 
         reclaim_possibility = False # for task bidding packet loss handling
         # check if agent won bidding
@@ -340,6 +342,7 @@ class Agent:
 
         # endregion
 
+
         # region INBOX handling only for removing unnecessary exploration tasks
         '''INBOX handling only for removing unnecessary exploration tasks'''
         for M in inbox:
@@ -367,6 +370,7 @@ class Agent:
                     # if exp_done_taskid in self.queue: self.queue.remove(exp_done_taskid)
         
         # endregion
+
 
         # region Target task
         target_task = None
@@ -457,6 +461,7 @@ class Agent:
                 
         # endregion
         
+
         # region VELOCITIES update
         '''solve for velocities'''
         # initialise velocity values
@@ -545,6 +550,7 @@ class Agent:
                 send_msg["term"] = self.leader_term
          
         # endregion
+
 
         # send message only if "send_msg" is populated
         if send_msg != {}:
