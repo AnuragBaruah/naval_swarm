@@ -6,12 +6,15 @@ import sys
 from pathlib import Path
 import json
 
-# global
+# global variable
 value_scale = 2
 
-# global constants to enable pre set capability:
-pre_set_capability_mode = True
+# # global variable
+# i. set False: if agent doesn't know its own capabilities as well as others:
+# ii. set True: if agent knows its own capabilities and others
+pre_set_capability_mode = False
 
+# If capability knowledge is preloaded, locate the scenario file defining agent capabilities
 if  pre_set_capability_mode:
     _base = Path(__file__).resolve().parent
     _candidates = [
@@ -24,18 +27,19 @@ if  pre_set_capability_mode:
             capability_filename_path = path
             break
 
+# distance between 2 points
 def dist(ax, ay, bx, by):
     return ((ax-bx)**2 + (ay-by)**2) ** 0.5
 
 class Agent:
+    # region - init fnction
     def __init__(self, agent_id, world_bounds, speed, seed):
         # fixed seed initialisation for predictable randomness (in case ever use randomness)
         random.seed(seed)
 
         # initialisation (compulsory)
         self.id = agent_id
-        #self.world_bounds = world_bounds
-        self.max_speed = speed
+        self.max_speed = speed      # self.world_bounds = world_bounds
 
         # initialisation (general)
         self.claim = None
@@ -48,7 +52,7 @@ class Agent:
         self.exp_done_msg_required = False
         self.outbox = []
         self.max_queue_limit_for_exploration = 3
-        # safeguard stuff
+        # for safeguard (tasks)
         self.prev_rem_times = None
         self.already_safeguarded_tasks = []
 
@@ -60,29 +64,20 @@ class Agent:
         self.warning_task = None
         self.ownership = None
 
-        # region - DEBUG
         # DEBUG FEATURES
         self.prev_queue = self.queue.copy()
         self.prev_cap = self.capabilities.copy()
         self.prev_no_cap = self.non_capabilities.copy()
         
-        # general debug mode (in case we want debug mode for all agents)
+        # general debug mode
         self.debug_mode = False
-
-        # # agent based debug mode (in case we want only debug file for particular)
-        # if self.id in (<write agent ids here for which we want to get debugs>):
-        #     self.debug_mode = True
-        # else:
-        #     self.debug_mode = False
 
         # debug file creation
         if self.debug_mode:
             self.debug_file = open(f"DEBUG\\agent_{self.id}.log", "w", buffering = 1)
             atexit.register(self.close_debug_file)
-        
-        # endregion
 
-        # region - HARDCODE - MODE
+        # Preload agent capabilities and non-capabilities from scenario file when capability knowledge is fixed
         if pre_set_capability_mode and capability_filename_path:
             with open(capability_filename_path, 'r') as file:
                 data = json.load(file)["agent_caps"]
@@ -91,8 +86,10 @@ class Agent:
                     self.capabilities.extend(data[i])
                 else:
                     self.non_capabilities.extend(data[i])
+
         # endregion
 
+    # Detect and log changes in task queue, capabilities, and non-capabilities to the debug file
     def debug(self, timestamp):
         debug_message = ""
         if self.queue != self.prev_queue:
@@ -111,6 +108,7 @@ class Agent:
     def close_debug_file(self):
         self.debug_file.close()
     
+    # compute_distance_cost_2
     def compute_distance_cost_2(self, all_tasks, taskid):
         cost = 0
         x, y = self.x, self.y
@@ -125,6 +123,7 @@ class Agent:
         cost += dist(x, y, all_tasks[taskid]["x"], all_tasks[taskid]["y"])
         return cost
 
+    # compute_distance_cost
     def compute_distance_cost(self, all_tasks, taskid):
         cost = 0
         x, y = self.x, self.y
@@ -137,6 +136,7 @@ class Agent:
         cost += dist(x, y, all_tasks[taskid]["x"], all_tasks[taskid]["y"])
         return cost
     
+    # the important "STEP" function
     def step(self, t, dt, self_state, tasks_visible, inbox):
         # get self coordinates
         self.x, self.y = self_state["x"], self_state["y"]
@@ -234,8 +234,6 @@ class Agent:
                 self.is_leader = False
                 self.lead_notify = False
 
-        # endregion
-
         # MAKING AVAILABLE TASKS LIST
         self.unavailable_tasks = [t for t in self.unavailable_tasks if t in active_tasks_ids]
         available_task_ids = [t for t in active_tasks_ids if t not in self.unavailable_tasks]
@@ -263,8 +261,6 @@ class Agent:
         current_claim_distance_cost = math.inf
         _claim_cap_type = None # "KCA" and "KCC"
         exploration_tasks = {} # {taskid : distance}
-
-        # if self.id == 4: print(f"*******\ntimestamp = {t}\nactive_tasks = {active_tasks_ids}\navailable = {available_task_ids}\nUNavailable = {self.unavailable_tasks}\n*********")
         
         for taskid in available_task_ids:
             # task capability requirement
@@ -309,12 +305,6 @@ class Agent:
                 ):
                     current_claim_distance_cost = _cost
                     current_claim = taskid
-
-                # # if competing task is KCC (KCC always wins for now)
-                # elif _dist < current_claim_distance_cost and :
-                #     current_claim_distance_cost = _dist
-                #     current_claim = taskid
-                #     _claim_cap_type = "KCA"
 
             # agent has required capability for this task -> KCC
             elif _task_req_cap in self.capabilities:
