@@ -1,7 +1,5 @@
 import argparse, importlib.util, json, math, os, random
 from copy import deepcopy
-import pygame
-
 
 def load_team(team_path):
     spec = importlib.util.spec_from_file_location("team_mod", team_path)
@@ -19,174 +17,6 @@ def dist(a, b):
 
 def clamp(v, lo, hi):
     return max(lo, min(hi, v))
-
-'''Pygame Visualization'''
-def world_to_screen(x, y, area, screen_w, screen_h):
-    xmin, xmax, ymin, ymax = area
-    sx = int((x - xmin) / (xmax - xmin) * screen_w)
-    sy = int(screen_h - (y - ymin) / (ymax - ymin) * screen_h)
-    return sx, sy
-
-class PygameVisualizer:
-    def __init__(self, scn):
-        pygame.init()
-        self.screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
-        self.W, self.H = self.screen.get_size()
-        self.leaders_required = int(scn.get("roles", {}).get("leaders_required", 0))
-        print(self.leaders_required)
-        pygame.display.set_caption("Swarm Simulation")
-        self.bg = pygame.image.load("images/backgound.png").convert()
-        self.skull_img = pygame.image.load("images/dead.png").convert_alpha()
-        self.skull_img = pygame.transform.smoothscale(self.skull_img, (40, 40))
-        self.crown_img = pygame.image.load("images/crown.png").convert_alpha()
-        self.crown_img = pygame.transform.scale_by(self.crown_img, 0.1)
-        self.bg = pygame.transform.scale(self.bg, (self.W, self.H))
-        self.area = scn["area"]
-        self.service_radius = scn.get("service_radius", 10.0)
-        self.clock = pygame.time.Clock()
-        self.paused = False
-        self.running = True
-        self.font = pygame.font.SysFont("timesnewroman", 20)
-        self.font2 = pygame.font.SysFont("timesnewroman", 80, bold=True)
-        self.agent_colors = [
-            (10, 60, 120),    # Sapphire Blue
-            (205, 127, 50),   # Statuary Bronze
-            (75, 54, 33),     # Espresso Brown
-            (138, 51, 36),    # Burnt Umber
-            (25, 25, 112),    # Midnight Blue
-            (53, 94, 59),     # Deep Emerald
-            (75, 0, 130),     # Royal Plum
-            (0, 80, 90),      # Dark Teal
-            (85, 107, 47),    # Olive Green
-            (89, 41, 65),     # Dark Mulberry
-        ]
-        self.trail_colors = [
-            (156, 186, 214),  # Very Light Sapphire Blue
-            (238, 210, 180),  # Very Light Statuary Bronze
-            (189, 178, 165),  # Very Light Espresso Brown
-            (214, 170, 164),  # Very Light Burnt Umber
-            (166, 166, 204),  # Very Light Midnight Blue
-            (178, 202, 182),  # Very Light Deep Emerald
-            (186, 166, 214),  # Very Light Royal Plum
-            (163, 209, 214),  # Very Light Dark Teal
-            (194, 206, 176),  # Very Light Olive Green
-            (196, 170, 184),  # Very Light Dark Mulberry
-        ]
-        self.last_angle = {}
-        self.trails = {}  # agent_id → list[(x,y)]
-
-    # Handles close window, pause simulation
-    def handle_events(self):
-        for e in pygame.event.get():
-            if e.type == pygame.QUIT:
-                self.running = False
-
-            if e.type == pygame.KEYDOWN:
-                if e.key == pygame.K_ESCAPE:
-                    self.running = False
-                if e.key == pygame.K_SPACE:
-                    self.paused = not self.paused
-
-    # Task
-    def draw_task(self, task, time_t):
-        # not started yet task
-        if time_t < task["t0"]:
-            return
-        # completed -> disappear
-        if task["done"]:
-            return
-        # dead → grey
-        if time_t > task["deadline"]:
-            circle_color = (160, 160, 160)   # grey
-            text_color = (160, 160, 160)
-            cap_color = (160, 160, 160)
-        else:
-            # active
-            circle_color = (180, 0, 0)       # red
-            text_color = (0, 0, 0)
-            cap_color = (0, 0, 0)
-        x, y = world_to_screen(task["x"], task["y"], self.area, self.W, self.H)
-        r = int(self.service_radius * self.W / (self.area[1]-self.area[0]))
-        pygame.draw.circle(self.screen, circle_color, (x,y), r*2, 2)
-        # draw task id text
-        text = self.font.render(str(task["id"]), True, text_color)
-        rect = text.get_rect(center=(x, y))
-        self.screen.blit(text, rect)
-        # draw capability label (if any)
-        if task.get("cap") is not None:
-            cap_text = self.font.render(str(task["cap"]), False, cap_color)
-            cap_rect = cap_text.get_rect(center=(x, y - r*2 - 10))
-            self.screen.blit(cap_text, cap_rect)
-
-    # Agent
-    def draw_agent(self, agent, vx, vy, is_leader=False):
-        if not agent["alive"]:
-            x, y = world_to_screen(agent["x"], agent["y"], self.area, self.W, self.H)
-            rect = self.skull_img.get_rect(center=(x, y))
-            self.screen.blit(self.skull_img, rect)
-            return
-        x, y = world_to_screen(agent["x"], agent["y"], self.area, self.W, self.H)
-        agent_color = self.agent_colors[agent["id"] % len(self.agent_colors)]
-        trail_color = self.trail_colors[agent["id"] % len(self.trail_colors)]
-
-        # trail:
-        self.trails.setdefault(agent["id"], []).append((x,y))
-        if len(self.trails[agent["id"]]) > 1:       #Draws the agent’s movement trail as connected line segments
-            pygame.draw.lines(self.screen, trail_color, False, self.trails[agent["id"]], 2)      #pygame.draw.lines(surface, color, closed, point_list, width)
-
-        # Arrow:
-        k=1.5
-        eps = 1e-6
-        if abs(vx) > eps or abs(vy) > eps:
-            angle = math.atan2(-vy, vx)
-            self.last_angle[agent["id"]] = angle
-        else:
-            angle = self.last_angle.get(agent["id"], 0.0)
-        L_body = 12 * k     # rectangle length      
-        # Direction vectors
-        dx = math.cos(angle)
-        dy = math.sin(angle)
-        px = -dy   # perpendicular
-        py = dx
-        # Triangle (head):
-        S = 18 * k                        # side length (increase to make bigger)
-        H = S * math.sqrt(3) / 2       # height of equilateral triangle
-        base_x = x + dx * (L_body / 2)  ## base center at front of body
-        base_y = y + dy * (L_body / 2)
-        tip = (base_x + dx * H, base_y + dy * H)    ## triangle points
-        p1  = (base_x + px * (S/2), base_y + py * (S/2))
-        p2  = (base_x - px * (S/2), base_y - py * (S/2))
-        pygame.draw.polygon(self.screen, agent_color, [tip, p1, p2])
-        
-        # id display
-        # centroid of triangle
-        cx = (tip[0] + p1[0] + p2[0]) / 3
-        cy = (tip[1] + p1[1] + p2[1]) / 3
-        text = self.font.render(str(agent["id"]), True, (255,255,255))
-        rect = text.get_rect(center=(cx,cy))
-        self.screen.blit(text, rect)
-
-        # leader
-        if is_leader and self.leaders_required >= 1:
-            rect = self.crown_img.get_rect(center=(x, y-20))
-            self.screen.blit(self.crown_img, rect)
-
-    # Renders one animation frame
-    def render(self, agents, tasks, desired, time_t, leader_id = None):
-        self.screen.fill((20,60,160))
-        self.screen.blit(self.bg, (0, 0))
-        for task in tasks:
-            self.draw_task(task, time_t)
-        for i,a in enumerate(agents):
-            vx, vy = desired[i]
-            self.draw_agent(a, vx, vy, a["id"] == leader_id)
-        if self.paused:
-            txt = self.font2.render("PAUSED", True, (0, 0, 0))
-            rect = txt.get_rect(center=(self.W // 2, 100))
-            self.screen.blit(txt, rect)
-        pygame.display.flip()       #Makes the drawn frame visible.
-        self.clock.tick(30)
-
 
 def run(scn, agent_cls, log_path, trace_path=None):
     random.seed(scn["seed"])
@@ -269,19 +99,7 @@ def run(scn, agent_cls, log_path, trace_path=None):
     total_dist = 0.0
     trace = [] if trace_path else None
 
-    '''For pygame Visualization'''
-    viz = PygameVisualizer(scn)
-
     while time_t < T:
-        '''For pygame Visualization'''
-        viz.handle_events()
-        if not viz.running:
-            break
-        if viz.paused:
-            viz.render(agents, tasks, desired, time_t, current_leader)
-            viz.clock.tick(30)
-            continue
-
         # Check failure injection
         if fail_at is not None and failed_agent is None and time_t >= fail_at:
             # by default, fail current leader if known, else agent 0
@@ -333,8 +151,6 @@ def run(scn, agent_cls, log_path, trace_path=None):
                 # Track claimed ownership if provided
                 if isinstance(m, dict) and m.get("type")=="claim":
                     tid = m.get("task_id", None)
-                    # print("claim_owner is = ", claim_owner)
-                    # print(f"agent = {i} claimed ownership of task {tid}")
                     if tid is not None:
                         tid = int(tid)
                         new_owner = int(m.get("agent", i))
@@ -342,8 +158,6 @@ def run(scn, agent_cls, log_path, trace_path=None):
                         if prev_owner != new_owner:
                             claim_owner[tid] = new_owner
                             claim_version += 1
-                            # print("claim_version =", claim_version)
-                            # print("claim_owner is = ", claim_owner)
                 # Leader tracking
                 if isinstance(m, dict) and m.get("type")=="role" and m.get("role")=="leader":
                     term = int(m.get("term", 0))
@@ -366,9 +180,6 @@ def run(scn, agent_cls, log_path, trace_path=None):
             d = math.hypot(a["x"]-oldx, a["y"]-oldy)
             a["dist"] += d
             total_dist += d
-
-        '''For pygame Visualization'''
-        viz.render(agents, tasks, desired, time_t, current_leader)
 
         # Service tasks (capability-aware)
         for task in tasks:
@@ -418,12 +229,10 @@ def run(scn, agent_cls, log_path, trace_path=None):
         if len(assignment_hist) >= window and convergence_tick is None:
             stable = 0; total = 0
             last_map = assignment_hist[-1]
-            # print("last_map is = ", last_map)
             for tid in last_map.keys():
                 total += 1
                 same = all((tid in m and m[tid]==last_map[tid]) for m in assignment_hist[-window:])
                 if same: stable += 1
-            # print("total is = ", total)
             if total>0 and stable/total>=0.95:
                 convergence_tick = tick - last_change_tick  # ticks since last change
 
@@ -473,7 +282,6 @@ def run(scn, agent_cls, log_path, trace_path=None):
     penalty = 0.0
     if conv_sec is None or conv_sec>60.0:
         penalty += 0.05
-        # print("conv_sec =", conv_sec)
 
     # Leader election gate if required
     leader_election_s = leader_elected_after_fail
@@ -507,12 +315,6 @@ def run(scn, agent_cls, log_path, trace_path=None):
     if trace_path and trace is not None:
         with open(trace_path,"w") as f: json.dump({"trace": trace}, f, separators=(",",":"))
     print(json.dumps(summary, indent=2))
-    
-    '''For pygame Visualization'''
-    pygame.event.clear()
-    pygame.display.quit()
-    pygame.quit()
-    
     return summary
 
 def main():

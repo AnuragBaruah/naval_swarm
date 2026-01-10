@@ -7,12 +7,12 @@ from pathlib import Path
 import json
 
 # global variable
-value_scale = 2
+value_scale = 1
 
 # # global variable
 # i. set False: if agent doesn't know its own capabilities as well as others:
 # ii. set True: if agent knows its own capabilities and others
-pre_set_capability_mode = False
+pre_set_capability_mode = True
 
 # If capability knowledge is preloaded, locate the scenario file defining agent capabilities
 if  pre_set_capability_mode:
@@ -89,6 +89,7 @@ class Agent:
 
         # endregion
 
+
     # Detect and log changes in task queue, capabilities, and non-capabilities to the debug file
     def debug(self, timestamp):
         debug_message = ""
@@ -144,7 +145,6 @@ class Agent:
         # get tasks_visible : [{'id': 1, 'x': 1146.0738385082163, 'y': 450.55809196144605, 't0': 2, 'deadline': 5, 'service': 2, 'value': 10, 'remaining': 2, 'cap': None}]
         active_tasks_ids = [task["id"] for task in tasks_visible] 
         all_tasks_from_id = dict(zip(active_tasks_ids, tasks_visible))     # getting a "id to task" mapping for ease of access
-
 
         # region INBOX handling - handle all (except one) inbox related tasks
         '''INBOX handling - handle all (except one) inbox related tasks'''
@@ -566,6 +566,3 @@ class Agent:
         self.prev_rem_times = {t : all_tasks_from_id[t]["remaining"] for t in active_tasks_ids}
         
         return {"vx": vx, "vy": vy}, self.outbox
-
-        
-        

@@ -30,7 +30,7 @@ def world_to_screen(x, y, area, screen_w, screen_h):
 class PygameVisualizer:
     def __init__(self, scn):
         pygame.init()
-        self.screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN)
         self.W, self.H = self.screen.get_size()
         self.leaders_required = int(scn.get("roles", {}).get("leaders_required", 0))
         print(self.leaders_required)
