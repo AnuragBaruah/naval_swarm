@@ -51,6 +51,17 @@ C:.
     \---__pycache__
             evaluator.cpython-312.pyc
 ```
+---
+
+## Design Features
+
+### Decentralized Capability Inference
+The framework implements **execution-based capability learning** that operates identically across both cold-start and warm-start modes. This ensures consistency while supporting different initialization strategies.
+
+### Unified Runtime Logic
+- No conditional logic changes between capability modes
+- Same task classification, decision-making, and allocation mechanisms
+- Capability awareness affects only initial agent state, not control flow
 
 ---
 
@@ -150,6 +161,7 @@ Custom team agent implementation.
 - Safeguards against task starvation
 - Robust handling of packet loss
 - Dynamic queue reordering based on cost and deadlines
+- 
 
 This file defines the mandatory `Agent` class with a `step()` function.
 
@@ -182,9 +194,43 @@ Assets used only by the visualizer:
 
 ---
 
-## 3. How to Run
+## 3. Capability Awareness Modes
 
-### 3.1 Run All Scenarios (Headless Evaluation)
+The framework supports two initialization regimes for agent capability knowledge:
+
+**Cold-Start Mode** (`pre_set_capability_mode = False`)
+- Agents begin with no prior knowledge of their own or others' capabilities
+- Capability information is learned exclusively through task execution outcomes
+- Tasks with unknown capability requirements are treated as exploratory candidates
+- Capability discovery is incremental during operation
+
+**Warm-Start Mode** (`pre_set_capability_mode = True`)
+- Agents are initialized with prior capability knowledge from the scenario
+- Each agent knows its own true capabilities and inferred non-capabilities of others
+- Tasks can be immediately classified as executable or non-executable
+- Same execution-based update mechanism remains active
+
+**Key Design Principle:** Both modes use identical control logic, decision-making mechanisms, and task allocation algorithms. The capability awareness mode affects only the initial belief state, not runtime execution paths.
+
+---
+
+## Configuration
+
+### Global Variables
+
+#### `pre_set_capability_mode`
+Located in: `nav_swarm30/teams/team_BF30ED.py`
+
+- `True`: Warm-start mode (agents know capabilities upfront)
+- `False`: Cold-start mode (agents learn capabilities through execution)
+
+This flag is evaluated only during agent construction and does not alter runtime logic.
+
+---
+
+## 4. How to Run
+
+### 4.1 Run All Scenarios (Headless Evaluation)
 
 From the root directory:
 
@@ -192,7 +238,20 @@ From the root directory:
 python run_all.py --team nav_swarm30/teams/team_BF30ED.py --out results.csv
 ```
 
-### 3.2 Run a Single Scenario (Headless Evaluation)
+### 4.2 Comparing Cold-Start vs Warm-Start Results
+
+Generate results for both modes:
+
+**Cold-start: agents learn capabilities through execution**
+```bash
+python run_all.py --team nav_swarm30/teams/team_BF30ED.py --out results_cold_start.csv
+```
+**Warm-start: agents initialized with capability knowledge**
+```bash
+python run_all.py --team nav_swarm30/teams/team_BF30ED.py --out results_warm_start.csv
+```
+
+### 4.3 Run a Single Scenario (Headless Evaluation)
 
 From the root directory:
 
@@ -203,7 +262,7 @@ python nav_swarm30/evaluator.py \
   --log summary.json
 ```
 
-### 3.3 Run with Visualisation (Pygame)
+### 4.4 Run with Visualisation (Pygame)
 
 ```bash
 python nav_swarm30/visualiser_evaluator.py \
@@ -217,7 +276,7 @@ python nav_swarm30/visualiser_evaluator.py \
 
 ---
 
-## 4. Dependencies
+## 5. Dependencies
 
 ### Required Python Version
 

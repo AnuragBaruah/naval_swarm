@@ -7,7 +7,7 @@ from pathlib import Path
 import json
 
 # global variable
-value_scale = 1
+value_scale = 2
 
 # # global variable
 # i. set False: if agent doesn't know its own capabilities as well as others:
